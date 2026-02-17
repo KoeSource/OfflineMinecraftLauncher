@@ -49,10 +49,10 @@ namespace OfflineMinecraftLauncher.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string minRAM {
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int minRAM {
             get {
-                return ((string)(this["minRAM"]));
+                return ((int)(this["minRAM"]));
             }
             set {
                 this["minRAM"] = value;
@@ -61,13 +61,61 @@ namespace OfflineMinecraftLauncher.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string maxRAM {
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int maxRAM {
             get {
-                return ((string)(this["maxRAM"]));
+                return ((int)(this["maxRAM"]));
             }
             set {
                 this["maxRAM"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int formWidth {
+            get {
+                return ((int)(this["formWidth"]));
+            }
+            set {
+                this["formWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int formHeight {
+            get {
+                return ((int)(this["formHeight"]));
+            }
+            set {
+                this["formHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string jvmExtraArgs {
+            get {
+                return ((string)(this["jvmExtraArgs"]));
+            }
+            set {
+                this["jvmExtraArgs"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool cbCloseOnLaunch {
+            get {
+                return ((bool)(this["cbCloseOnLaunch"]));
+            }
+            set {
+                this["cbCloseOnLaunch"] = value;
             }
         }
     }

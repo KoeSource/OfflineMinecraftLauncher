@@ -3,6 +3,7 @@ using CmlLib.Core.Auth;
 using CmlLib.Core.Installers;
 using CmlLib.Core.ProcessBuilder;
 using CmlLib.Core.VersionMetadata;
+using System.Runtime.InteropServices.Swift;
 
 namespace OfflineMinecraftLauncher;
 
@@ -40,8 +41,12 @@ public partial class LauncherForm : Form
         // Load previous used values in the inputs
         usernameInput.Text = Properties.Settings.Default.Username;
         cbVersion.Text = Properties.Settings.Default.Version;
-        maxRAMinput.Text = Properties.Settings.Default.maxRAM;
-        minRAMinput.Text = Properties.Settings.Default.minRAM;
+        maxRAMinput.Text = Properties.Settings.Default.maxRAM.ToString();
+        minRAMinput.Text = Properties.Settings.Default.minRAM.ToString();
+        Width = Properties.Settings.Default.formWidth;
+        Height = Properties.Settings.Default.formHeight;
+        jvmExtraArgsInput.Text = Properties.Settings.Default.jvmExtraArgs;
+        cbCloseOnLaunch.Checked = Properties.Settings.Default.cbCloseOnLaunch;
 
         // Set default username to Environment.UserName if empty
         if (string.IsNullOrEmpty(usernameInput.Text))
@@ -112,39 +117,57 @@ public partial class LauncherForm : Form
 
             launchOptions.Session = session;
 
-            if (string.IsNullOrEmpty(minRAMinput.Text))
+            // Set ExtraArguments
+            if (!string.IsNullOrEmpty(jvmExtraArgsInput.Text))
             {
-                launchOptions.MinimumRamMb = 512;
+                if (jvmExtraArgsInput.Text.Contains(','))
+                {
+                    launchOptions.ExtraJvmArguments = jvmExtraArgsInput.Text.Split(
+                        ',', StringSplitOptions.RemoveEmptyEntries).Select(
+                        arg => new MArgument(arg.Trim())).ToArray();
+                }
+                else
+                {
+                    launchOptions.ExtraJvmArguments = new[] {
+                        new MArgument(jvmExtraArgsInput.Text)
+                    };
+                }
             }
-            else {
+
+            // Set RAM
+            if (minRAMinput.Text == "0")
+            {
+                launchOptions.MinimumRamMb = 256;
+            }
+            else
+            {
                 launchOptions.MinimumRamMb = Convert.ToInt32(minRAMinput.Text);
             }
 
-            if (string.IsNullOrEmpty(maxRAMinput.Text))
+            if (maxRAMinput.Text == "0")
             {
-                launchOptions.MaximumRamMb = 1024;
+                launchOptions.MaximumRamMb = 512;
             }
             else
             {
                 launchOptions.MaximumRamMb = Convert.ToInt32(maxRAMinput.Text);
             }
 
-            //launchOptions.MinimumRamMb = 2048;
-            //launchOptions.MaximumRamMb = 8192;
-
             await _launcher.InstallAsync(cbVersion.Text);
             var process = await _launcher.BuildProcessAsync(cbVersion.Text, launchOptions);
+            logTextBox.Clear();
+            logTextBox.AppendText("Start Info & Arguments:" + Environment.NewLine + Environment.NewLine);
+            logTextBox.AppendText(process.StartInfo.Arguments);
             process.Start();
 
-            // Save values
-            Properties.Settings.Default.Username = usernameInput.Text;
-            Properties.Settings.Default.Version = cbVersion.Text;
-            Properties.Settings.Default.minRAM = minRAMinput.Text;
-            Properties.Settings.Default.maxRAM = maxRAMinput.Text;
-            Properties.Settings.Default.Save();
+            // Save values in onClose EVENT!
 
-            // Exit if successful
-            Application.Exit();
+            if (cbCloseOnLaunch.Checked)
+            {
+                //You can't check the logs-Tab if you exit!
+                Application.Exit();
+            }
+
         }
         catch (Exception ex)
         {
@@ -242,9 +265,31 @@ public partial class LauncherForm : Form
 
     private void numbersOnlyInput_KeyPress(object sender, KeyPressEventArgs e)
     {
-        if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) 
-        { 
-            e.Handled = true; 
+        if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+        {
+            e.Handled = true;
+        }
+    }
+
+    private void LauncherForm_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        // Save values
+        Properties.Settings.Default.Username = usernameInput.Text;
+        Properties.Settings.Default.Version = cbVersion.Text;
+        Properties.Settings.Default.minRAM = Convert.ToInt32(minRAMinput.Text);
+        Properties.Settings.Default.maxRAM = Convert.ToInt32(maxRAMinput.Text);
+        Properties.Settings.Default.formHeight = Height;
+        Properties.Settings.Default.formWidth = Width;
+        Properties.Settings.Default.jvmExtraArgs = jvmExtraArgsInput.Text;
+        Properties.Settings.Default.cbCloseOnLaunch = cbCloseOnLaunch.Checked;
+        Properties.Settings.Default.Save();
+    }
+
+    private void setTextBoxToZero_TextChanged(object sender, EventArgs e)
+    {
+        var tb = (TextBox)sender;
+        if (string.IsNullOrEmpty(tb.Text)) {
+            tb.Text = "0";
         }
     }
 }
