@@ -40,6 +40,8 @@ public partial class LauncherForm : Form
         // Load previous used values in the inputs
         usernameInput.Text = Properties.Settings.Default.Username;
         cbVersion.Text = Properties.Settings.Default.Version;
+        maxRAMinput.Text = Properties.Settings.Default.maxRAM;
+        minRAMinput.Text = Properties.Settings.Default.minRAM;
 
         // Set default username to Environment.UserName if empty
         if (string.IsNullOrEmpty(usernameInput.Text))
@@ -91,6 +93,13 @@ public partial class LauncherForm : Form
             return;
         }
 
+        if (usernameInput.Text.Any(char.IsWhiteSpace))
+        {
+            //World creation will fail if there is a space in name for example: "Tony Stark"
+            MessageBox.Show("Invalid username, no whitespaces allowed!");
+            return;
+        }
+
         this.Enabled = false;
         btnStart.Text = "Launching";
 
@@ -98,18 +107,40 @@ public partial class LauncherForm : Form
         try
         {
             var session = MSession.CreateOfflineSession(usernameInput.Text);
+            var launchOptions = new MLaunchOption();
             session.UUID = _playerUuid;
 
-            await _launcher.InstallAsync(cbVersion.Text);
-            var process = await _launcher.BuildProcessAsync(cbVersion.Text, new MLaunchOption
+            launchOptions.Session = session;
+
+            if (string.IsNullOrEmpty(minRAMinput.Text))
             {
-                Session = session
-            });
+                launchOptions.MinimumRamMb = 512;
+            }
+            else {
+                launchOptions.MinimumRamMb = Convert.ToInt32(minRAMinput.Text);
+            }
+
+            if (string.IsNullOrEmpty(maxRAMinput.Text))
+            {
+                launchOptions.MaximumRamMb = 1024;
+            }
+            else
+            {
+                launchOptions.MaximumRamMb = Convert.ToInt32(maxRAMinput.Text);
+            }
+
+            //launchOptions.MinimumRamMb = 2048;
+            //launchOptions.MaximumRamMb = 8192;
+
+            await _launcher.InstallAsync(cbVersion.Text);
+            var process = await _launcher.BuildProcessAsync(cbVersion.Text, launchOptions);
             process.Start();
 
             // Save values
             Properties.Settings.Default.Username = usernameInput.Text;
             Properties.Settings.Default.Version = cbVersion.Text;
+            Properties.Settings.Default.minRAM = minRAMinput.Text;
+            Properties.Settings.Default.maxRAM = maxRAMinput.Text;
             Properties.Settings.Default.Save();
 
             // Exit if successful
@@ -206,6 +237,14 @@ public partial class LauncherForm : Form
                 characterPictureBox.Tag = resourceName.Replace("_", " ");
                 _characterPreviewTooltip.SetToolTip(characterPictureBox, characterPictureBox.Tag?.ToString());
             }
+        }
+    }
+
+    private void numbersOnlyInput_KeyPress(object sender, KeyPressEventArgs e)
+    {
+        if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) 
+        { 
+            e.Handled = true; 
         }
     }
 }
